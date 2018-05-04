@@ -24,7 +24,7 @@ import sys
 import math
 import time
 import signal
-import argparse
+import optparse
 import numpy as np
 import MDAnalysis as mda
 import multiprocessing as mp
@@ -49,7 +49,7 @@ def parse_cmdline(cmdlineArgs):
 	parser.set_defaults(lipidName = "POPE POPG", leaflet = 1)
 	
 	opts, args = parser.parse_args(cmdlineArgs)
-	pdbFile   = opts.psfFile
+	pdbFile   = opts.pdbFile
 	trjFile   = opts.trjFile
 	lipidName = opts.lipidName
 	leafSide  = opts.leafSide
@@ -73,7 +73,7 @@ def Order(number_of_threads, thread_index):
 	File should be combined 'a posteriori' to generate the order_parameter.map
 	"""
 	
-	print "Starting thread {}".format(number_of_threads)
+	print "Starting thread {}".format(thread_index)
 	
 	# read trajectory with mdanalysis
 	
@@ -113,7 +113,7 @@ def Order(number_of_threads, thread_index):
 	
 	# set variables
 	
-	gridsize = 1 # Ångström
+	gridsize = 1 # Angstrom
 	P2 = 0.0 # order function
 	cos_theta = 0.0 # cosine
 		
