@@ -73,11 +73,11 @@ def Order(number_of_threads, thread_index):
 	File should be combined 'a posteriori' to generate the order_parameter.map
 	"""
 	
-	print "Starting thread {}".format(nthread)
+	print "Starting thread {}".format(number_of_threads)
 	
 	# read trajectory with mdanalysis
 	
-	universe = mda.Universe(options.pdb, options.traj)
+	universe = mda.Universe(pdbFile, trjFile)
 	
 	lipids = universe.select_atoms("resname {}".format(lipidName))
 	(box_x,box_y) = (universe.dimensions[0],universe.dimensions[1])
@@ -161,9 +161,9 @@ def Order(number_of_threads, thread_index):
 	
 	# end traj cycle
 	
-	print "Saving results in thread {}".format(nthread)
+	print "Saving results in thread {}".format(thread_index)
 	np.savetxt('tmp_{}/scc_{}_{}.out'.format(leafSide,lipidName[0:2],thread_index), order_array, fmt='%1.4e')
-	np.savetxt('tmp_{}/cnt_{}_{}.out'.format(leafSIde,lipidName[0:2],thread_index), count_array, fmt='%1.4e')
+	np.savetxt('tmp_{}/cnt_{}_{}.out'.format(leafSide,lipidName[0:2],thread_index), count_array, fmt='%1.4e')
 	
 	print "Finished thread {}".format(thread_index)
 	
@@ -225,7 +225,7 @@ if __name__ == "__main__":
 	pdbFile, trjFile, lipidName, leafSide = parse_cmdline(sys.argv[1:])
 	
 	# create output directory
-	directory = 'tmp_{}'.format(leaflet)
+	directory = 'tmp_{}'.format(leafSide)
 	if not os.path.exists(directory):
 		os.makedirs(directory)
 
