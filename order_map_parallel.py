@@ -39,7 +39,6 @@ import argparse
 import numpy as np
 import MDAnalysis as mda
 import multiprocessing as mp
-from scipy import interpolate
 from MDAnalysis.analysis.leaflet import LeafletFinder
 
 ##################################################################################################################################################################
@@ -55,21 +54,22 @@ def parse_cmdline(cmdlineArgs):
 						usage='use "%(prog)s --help" for more information', 
 						formatter_class=argparse.RawTextHelpFormatter)
 
-	parser.add_argument("-p", "--pdbFile", required=True, help='coordinate file: .tpr, .pdb, .gro')
-	parser.add_argument("-t", "--trjFile", required=True, help='trajectory file: .dcd, .trr, .xtc')
-	parser.add_argument("-l", "--lipidName", help='lipid name: POPE POPG POPC POPS DLPE DLPG DLPC')
-	parser.add_argument("-m", "--leafSide", help='monolayer: 1 (up) 2 (down)')
+	parser.add_argument("-p", dest="pdbFile", required=True, help='coordinate file: .tpr, .pdb, .gro')
+	parser.add_argument("-t", dest="trjFile", required=True, help='trajectory file: .dcd, .trr, .xtc')
+	parser.add_argument("-l", dest="lipidName", help='lipid name: POPE POPG POPC POPS DLPE DLPG DLPC')
+	parser.add_argument("-m", dest="leafSide", help='monolayer: 1 (up) 2 (down)')
+	parser.add_argument("-n", dest="nThread", help='number of threads')
 	
 	parser.set_defaults(lipidName = "POPC", leafSide = 1)
 	
 	args = parser.parse_args(cmdlineArgs)
 
-	if (args.pdbFile == None) or (args.trjFile == None):
-	
-		parser.print_help()
+	if not os.path.exists(args.pdbFile) or not os.path.exists(args.trjFile):
+		
+		print("ERROR!!!! No such file '{}' or '{}'".format(args.pdbFile, args.trjFile))	
 		exit()
 
-	return args.pdbFile, args.trjFile, args.lipidName, args.leafSide
+	return args.pdbFile, args.trjFile, args.lipidName, args.leafSide, args.nThread
 
 ##################################################################################################################################################################
 # order function
@@ -87,11 +87,6 @@ def Order(number_of_threads, thread_index):
 	# read trajectory with mdanalysis
 	
 	universe = mda.Universe(pdbFile, trjFile)
-
-	# set bead masses
-
-	#universe.atoms[universe.atoms.types == 'G'].masses = 1
-	#universe.atoms[universe.atoms.types == 'D'].masses = 1
 
 	# select lipid residues
 	
@@ -215,10 +210,10 @@ def final(leafSide):
 
 	for name in files:
 		print name
-		if "cnt" in name:
+		if "scc" in name:
 			a = np.loadtxt('{}/{}'.format(path,name))
 			A += a
-		elif "scc" in name:
+		elif "cnt" in name:
 			b = np.loadtxt('{}/{}'.format(path,name))
 			B += b
 
@@ -242,11 +237,11 @@ def init_worker():
 # main function
 ##################################################################################################################################################################
 
-def main():
+def main(n):
 	
 	m = mp.Manager()
 	maxcpu = mp.cpu_count()
-	jobs = maxcpu / 2
+	jobs = int(n)
 	output = []
 	
 	print "Initializng {} workers".format(jobs)
@@ -283,7 +278,7 @@ if __name__ == "__main__":
 	start_time = time.time()
 	
 	# parse the command line
-	pdbFile, trjFile, lipidName, leafSide = parse_cmdline(sys.argv[1:])
+	pdbFile, trjFile, lipidName, leafSide, nThread = parse_cmdline(sys.argv[1:])
 	
 	# create output directory
 	directory = 'tmp_{}'.format(leafSide)
@@ -291,7 +286,7 @@ if __name__ == "__main__":
 		os.makedirs(directory)
 
 	# start the analysis
-	main()
+	#main(nThread)
 
 	# process the results
 	final(leafSide)
