@@ -217,8 +217,6 @@ def final(leafSide):
 			b = np.loadtxt('{}/{}'.format(path,name))
 			B += b
 
-	np.savetxt('test.dat', B, fmt='%1.4f')
-
 	p1 = np.divide(A, B, where=B>=1)
 	p2 = 0.5 * (3.0 * p1 - 1.0)
 
@@ -286,7 +284,7 @@ if __name__ == "__main__":
 		os.makedirs(directory)
 
 	# start the analysis
-	#main(nThread)
+	main(nThread)
 
 	# process the results
 	final(leafSide)
