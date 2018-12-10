@@ -1,3 +1,3 @@
 # MDAnalysis_order_map
 
-use: python 
+add: selection option to command line
