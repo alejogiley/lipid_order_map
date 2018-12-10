@@ -35,6 +35,7 @@ import sys
 import math
 import time
 import signal
+import shutil
 import argparse
 import numpy as np
 import MDAnalysis as mda
@@ -131,8 +132,10 @@ def Order(number_of_threads, thread_index):
 	        leaf[2] = leaflet0
 	        leaf[1] = leaflet1
 	
-	monolayer = leaf[int(leafSide)].select_atoms("resname {}".format(lipidName))
-	
+	#monolayer = leaf[int(leafSide)].select_atoms("resname {}".format(lipidName))
+	monolayer = leaf[int(leafSide)].select_atoms("resname {} and same residue as (name PO4 and prop abs x <= 150.0 and prop abs y <= 150.0)".format(lipidName), updating=True)	
+	print monolayer.residues.n_residues
+
 	# set variables
 	
 	gridsize = 1 # Angstrom
@@ -153,9 +156,9 @@ def Order(number_of_threads, thread_index):
 	
 	# start traj cycle
 	for ts in universe.trajectory[start_frame:end_frame:stride]:
-		
+		print ts.frame,monolayer.residues.n_residues
 		# start residue cycle
-		for res in monolayer.residues:
+		for res in monolayer.residues[0:1]:
 			
 			# start bonds cycle
 			for i in range(number_bonds):
@@ -280,9 +283,23 @@ if __name__ == "__main__":
 	
 	# create output directory
 	directory = 'tmp_{}'.format(leafSide)
+		
+	if os.path.exists(directory):
+		try:
+			shutil.rmtree(directory)
+		except OSError:
+    			print ("Deletion of the directory %s failed" % directory)
+		else:
+			print ("Successfully delete the directory %s" % directory)
+	
 	if not os.path.exists(directory):
-		os.makedirs(directory)
-
+		try:
+			os.makedirs(directory)
+		except OSError:
+			print ("Creation of the directory %s failed" % directory)
+		else:
+			print ("Successfully create the directory %s" % directory)
+	
 	# start the analysis
 	main(nThread)
 

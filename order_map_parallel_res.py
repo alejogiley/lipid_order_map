@@ -144,8 +144,8 @@ def Order(number_of_threads, thread_index):
 	NRes = int((monolayer.residues.n_residues) / number_of_threads) # 'number_of_threads' blocks of 'NRes' residues
 	RRes = (monolayer.residues.n_residues) % NRes # plus 'RRes' residues
 	
-	first = monolayer.residues.resnums[0] + NRes * thread_index # first residue
-	last = monolayer.residues.resnums[0] + NRes * (thread_index + 1) # last residue
+	first = NRes * thread_index # first residue index
+	last = NRes * (thread_index + 1) # last residue index
 
 	# add the rest to the last thread
 	if thread_index == number_of_threads - 1: last = last + RRes 
