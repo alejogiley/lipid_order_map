@@ -222,7 +222,35 @@ def Order(thread_index):
 	return 0
 
 ##################################################################################################################################################################
-# calculate final map
+# initialize directory
+##################################################################################################################################################################
+
+def inicio():
+	"""
+	This routine clean and create 
+	a temporary directory
+	"""
+	directory = 'tmp_{}'.format(leafSide)
+	
+	if os.path.exists(directory):
+	       try:
+	               shutil.rmtree(directory)
+	       except OSError:
+	               print ("Deletion of the directory %s failed" % directory)
+	       else:
+	               print ("Successfully delete the directory %s" % directory)
+	
+	if not os.path.exists(directory):
+	       try:
+	               os.makedirs(directory)
+	       except OSError:
+	               print ("Creation of the directory %s failed" % directory)
+	       else:
+	               print ("Successfully create the directory %s" % directory)
+	return
+
+##################################################################################################################################################################
+# process results
 ##################################################################################################################################################################
 
 def final():
@@ -233,8 +261,8 @@ def final():
 	file_count = len(files)
 	
 	if file_count > 0:
-		A = 0
-		B = 0
+		A = 0.0
+		B = 0.0
 		
 		print "Processing files:"
 		
@@ -242,12 +270,13 @@ def final():
 			print name
 			if "scc" in name:
 				a = np.loadtxt('{}/{}'.format(path,name))
-				A += a
+				A += np.float64(a)
 			elif "cnt" in name:
 				b = np.loadtxt('{}/{}'.format(path,name))
-				B += b
+				B += np.float64(b)
 		
-		p1 = np.divide(A, B, where=B>=1)
+		with np.errstate(divide='ignore',invalid='ignore'): p1 = np.divide(A, B)
+
 		p2 = 0.5 * (3.0 * p1 - 1.0)
 		
 		np.savetxt('order_final_{}.dat'.format(leafSide), p2, fmt='%1.4f')
@@ -255,7 +284,7 @@ def final():
 		print('Directory was empty. Exiting')
 		exit()
 	
-	return 0
+	return
 
 ##################################################################################################################################################################	
 # initialized each thread
@@ -322,27 +351,8 @@ if __name__ == "__main__":
 	pdbFile, trjFile, lipidName, leafSide, nThread, Apl, Stride = parse_cmdline(sys.argv[1:])
 	
 	# create output directory
-	directory = 'tmp_{}'.format(leafSide)
+	inicio()
 		
-	if os.path.exists(directory):
-		try:
-			shutil.rmtree(directory)
-		except OSError:
-    			print ("Deletion of the directory %s failed" % directory)
-		else:
-			print ("Successfully delete the directory %s" % directory)
-	
-	if not os.path.exists(directory):
-		try:
-			os.makedirs(directory)
-		except OSError:
-			print ("Creation of the directory %s failed" % directory)
-		else:
-			print ("Successfully create the directory %s" % directory)
-	
-	# read trajectory with mdanalysis
-        # universo = mda.Universe(pdbFile, trjFile)
-
 	# start the analysis
 	main()
 
