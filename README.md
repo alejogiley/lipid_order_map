@@ -19,7 +19,7 @@ are assigned according to the x,y position of the lipid's phosphate group.
 
 ## Citation
 
-Please visit MDAnalysis [docs](https://www.mdanalysis.org/docs/) website to learn about references.
+Please visit [MDAnalysis](https://www.mdanalysis.org/docs/) website to learn about references.
 
 ## Directory tree
 
