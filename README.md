@@ -14,7 +14,7 @@ P2 =  0.0 	random orientation.
 ```
 
 The order parameter of all acyl-chain bonds is stored in a 2D grid, where the bin coordinates 
-are assigned according to the x,y position of the lipid's phosphate group.
+are assigned according to the cartesian (x, y) coordinates of the lipid phosphate group.
 
 ## Instalation
 
