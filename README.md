@@ -1,20 +1,27 @@
-# Second-rank order Parameter analysis
+# Second-rank order parameter analysis
 
 This script calculates the order parameters of the lipids with respect to the membrane normal.
 
-<p align="center"><img src='./figures/CodeEqn.gif' /></p>
+<p align="center"><img src='./figures/CodeEqn0.gif' /></p>
 
 where theta is the angle between the acyl-chain bond and the bilayer normal, and the average
-of cos^2(theta) is calculated using all the frames in the input ensemble.
+of <img src='./figures/CodeEqn1.gif'/> is calculated using all the frames in the input ensemble.
 
+
+```
 P2 =  1.0 	perfect alignment with the bilayer normal 
 P2 = -0.5 	anti-alignment 
 P2 =  0.0 	random orientation.
+```
 
 The order parameter of all acyl-chain bonds is stored in a 2D grid, where the bin coordinates 
 are assigned according to the x,y position of the lipid's phosphate group.
 
-## Directory Tree
+## Citation
+
+Please visit MDAnalysis [docs](https://www.mdanalysis.org/docs/) website to learn about references.
+
+## Directory tree
 
 ```
 /msd_map/
@@ -32,18 +39,20 @@ are assigned according to the x,y position of the lipid's phosphate group.
 
 ## Usage
 
-```javascript
+```python
 python src/order_map_parallel.py -p files/system.tpr -t files/traj.trr -l POPC -m 1 -a 64 -s 2 
 ```
+---
 
+```
 OPTIONS
 
  -h, --help shows help message and exit
 
-Options to specify input files and parameters:
+Specify input files and parameters:
 
  -p	[<.tpr/.pdb/.gro/...>]           (topol.tpr)
-	  Input coordinate file: .tpr, .pdb, .gro, .psf, ...
+          Input coordinate file: .tpr, .pdb, .gro, .psf, ...
  -t	[<.trr/.xtc/.dcd/...>]           (traj.trr)	
 	  Input trajectory file: .trr, .xtc, .dcd, .netcdf, .mdcrd, ...
  -l	<string>			 (POPC)	
@@ -56,7 +65,7 @@ Options to specify input files and parameters:
 	  Area per lipid headgroup in square Angstrom
  -s	<int>				 (1)
 	  Sride for the trajectory analysis
-
+```
 
 
 
