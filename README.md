@@ -7,7 +7,6 @@ This script calculates the order parameters of the lipids with respect to the me
 where theta is the angle between the acyl-chain bond and the bilayer normal, and the average
 of <img src='./figures/CodeEqn1.gif'/> is calculated using all the frames in the input ensemble.
 
-
 ```
 P2 =  1.0 	perfect alignment with the bilayer normal 
 P2 = -0.5 	anti-alignment 
@@ -16,6 +15,21 @@ P2 =  0.0 	random orientation.
 
 The order parameter of all acyl-chain bonds is stored in a 2D grid, where the bin coordinates 
 are assigned according to the x,y position of the lipid's phosphate group.
+
+## Instalation
+
+This script requires:
+```
+Python 2.7.x
+Numpy
+Multiprocessing
+MDAnalysis
+```
+
+Required packages can be installed using [pip](http://www.pip-installer.org/en/latest/index.html), e.g.:
+```
+pip install MDAnalysis
+```
 
 ## Citation
 
@@ -41,9 +55,7 @@ Please visit [MDAnalysis](https://www.mdanalysis.org/docs/) website to learn abo
 
 ```python
 python src/order_map_parallel.py -p files/system.tpr -t files/traj.trr -l POPC -m 1 -a 64 -s 2 
-```
----
-
+``` 
 ```
 OPTIONS
 
