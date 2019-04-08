@@ -58,6 +58,7 @@ def parse_cmdline(cmdlineArgs):
 	parser.add_argument("-n", dest="nThread", help='number of threads')
 	parser.add_argument("-a", dest="Apl", help='area per lipid')
 	parser.add_argument("-s", dest="Stride", help='trajectory analysis stride')
+	parser.add_argument("-o", dest="outpath", help='output directory')
 	
 	parser.set_defaults(lipidName = "POPC", leafSide = 1, Apl = 8, Stride = 1)
 	
@@ -68,7 +69,7 @@ def parse_cmdline(cmdlineArgs):
 		print("ERROR!!!! No such file '{}' or '{}'".format(args.pdbFile, args.trjFile))	
 		exit()
 
-	return args.pdbFile, args.trjFile, args.lipidName, args.leafSide, args.nThread, args.Apl, args.Stride
+	return args.pdbFile, args.trjFile, args.lipidName, args.leafSide, args.nThread, args.Apl, args.Stride, args.outpath
 
 ##################################################################################################################################################################
 # check-and-balances
@@ -211,8 +212,8 @@ def Order(thread_index):
 	###########################################################################
 	
 	print "Saving results in thread {}".format(thread_index)
-	np.savetxt('tmp_{}/scc_{}_{}.out'.format(leafSide,lipidName[0:2],thread_index), order_array, fmt='%1.4f')
-	np.savetxt('tmp_{}/cnt_{}_{}.out'.format(leafSide,lipidName[0:2],thread_index), count_array, fmt='%1.4f')
+	np.savetxt('{}/layer_{}/scc_{}_{}.out'.format(outpath, leafSide, lipidName[0:2], thread_index), order_array, fmt='%1.4f')
+	np.savetxt('{}/layer_{}/cnt_{}_{}.out'.format(outpath, leafSide, lipidName[0:2], thread_index), count_array, fmt='%1.4f')
 	
 	print "Finished thread {}".format(thread_index)
 	
@@ -227,7 +228,7 @@ def inicio():
 	This routine clean and create 
 	a temporary directory
 	"""
-	directory = 'tmp_{}'.format(leafSide)
+	directory = '{}/layer_{}'.format(outpath,leafSide)
 	
 	if os.path.exists(directory):
 	       try:
@@ -254,7 +255,7 @@ def final():
 	"""
         This function calculates the final order parameter map
         """
-	path, dirs, files = next(os.walk('tmp_{}'.format(leafSide)))
+	path, dirs, files = next(os.walk('{}/layer_{}'.format(outpath,leafSide)))
 	file_count = len(files)
 	
 	if file_count > 0:
@@ -276,7 +277,8 @@ def final():
 
 		p2 = 0.5 * (3.0 * p1 - 1.0)
 		
-		np.savetxt('order_final_{}.dat'.format(leafSide), p2, fmt='%1.4f')
+		np.savetxt('{}/order_final_{}.dat'.format(outpath,leafSide), p2, fmt='%1.4f')
+		shutil.rmtree(path)
 	else:
 		print('Directory was empty. Exiting')
 		exit()
@@ -345,7 +347,7 @@ if __name__ == "__main__":
 	start_time = time.time()
 	
 	# parse the command line
-	pdbFile, trjFile, lipidName, leafSide, nThread, Apl, Stride = parse_cmdline(sys.argv[1:])
+	pdbFile, trjFile, lipidName, leafSide, nThread, Apl, Stride, outpath = parse_cmdline(sys.argv[1:])
 	
 	# create output directory
 	inicio()
