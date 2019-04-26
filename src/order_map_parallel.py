@@ -3,22 +3,23 @@
 #
 # This script calculates the order parameters of all
 # MARTINI CG lipid C-C bonds with respect to the membrane
-# normal. 
+# normal (0,0,1). 
 #
-#	P2 = 0.5 * (3 * <cos^2(theta)> - 1)
+#	P2 = 0.5 * (3 * cos^2<theta> - 1)
 #
-# where theta is the angle between the bond and the bilayer normal: 
+# where theta is the average angle between the lipid bonds 
+# and the bilayer normal: 
+#
+#	<theta> = atan2(<sin(angle)>,<cos(angle)>)
 #
 # P2 = 1 means perfect alignment with the bilayer normal
 # P2 = -0.5 anti-alignment
-# P2 = 0 random orientation.
+# P2 = 0 non-preferred orientation.
 #
-# The average vale along all acyl chain bonds
-# is stored in a 2D grid, where the bin coordinates are assigned
-# according to the (x,y) position of the lipid PO4 bead.  
+# Each lipid P2 value is stored in a 2D grid. Bins are assigned
+# according to the (x,y) position of the lipid PO4 bead.
+#  
 # Finally, the order-parameter matrix is average over time. 
-# ****the membrane normal vector is assumed to be (0,0,1)
-#
 #
 # 2018 Alejandro Gil-Ley, NHLBI/NIH
 #
@@ -36,6 +37,8 @@ import argparse
 import numpy as np
 import MDAnalysis as mda
 import multiprocessing as mp
+
+from MDAnalysis.lib import mdamath
 from MDAnalysis.analysis.leaflet import LeafletFinder
 
 ##################################################################################################################################################################
@@ -109,8 +112,7 @@ def Order(thread_index):
 	
 	stride = int(Stride) # analyze every 'stride' frames
 	gridsize = np.sqrt(float(Apl)) # Angstrom
-	P2 = 0.0 # order function
-	cos_theta = 0.0 # cosine
+	P2 = 0.0 # order cosine
 	
 	# INITIALIZE ARRAYS
 
@@ -124,7 +126,7 @@ def Order(thread_index):
         DL = ['DLPE', 'DLPG', 'DLPC']
 	DP = ['DPPC']
 	
-        if all(x in PO for x in lipidName.split(" ")):
+        if   all(x in PO for x in lipidName.split(" ")):
                 bond_names = "GL1-C1A GL2-C1B C1A-D2A D2A-C3A C3A-C4A C1B-C2B C2B-C3B C3B-C4B"
         elif all(x in DL for x in lipidName.split(" ")):
                 bond_names = "GL1-C1A GL2-C1B C1A-C2A C2A-C3A C1B-C2B C2B-C3B"
@@ -174,37 +176,60 @@ def Order(thread_index):
 	###########################################################################
 	# START TRAJ CYCLE
 	###########################################################################
-
+	
 	blockLength = int(len(universo.trajectory)/int(nThread))
 	f = thread_index * blockLength + 1
-	l = (thread_index + 1)* blockLength 	
+	l = (thread_index + 1)* blockLength
+	
+	# variables
+	dotp = 0
+	norm = 0
+	angl = 0
+	# axis
+	z = np.array([0, 0, 1])
 
 	for ts in universo.trajectory[f:l:stride]:
-
+		
 		# start residue cycle
 		for res in monolayer.residues:
 			
+			sin = 0
+			cos = 0
+			
 			# start bonds cycle
 			for i in range(number_bonds):
-					
+						
 				selection = "resnum {} and name {} {}".format(res.resnum, enlace[i][0], enlace[i][1])
-				group = lipids.select_atoms(selection) 
-				data = group.positions
-				cc = (np.concatenate((data[0::2] - data[1::2]), axis=0))
-				cc_r = np.sqrt(np.sum(np.power(cc, 2), axis=-1))  
-				cos_theta = cc[..., 2] / cc_r
-				P2 += cos_theta * cos_theta
-			
+				group = lipids.select_atoms(selection)
+
+				# coordinates of bond atoms
+				p = group.positions
+				# bond vector
+				v = p[1] - p[0]
+				# angle of bond with z axis
+				dotp = np.dot(v,z)
+				norm = np.cross(v,z)
+				norm = mdamath.norm(norm)
+				angl = math.atan2(norm,dotp)
+				# average sin and cos of angle
+				sin += math.sin(angl)
+				cos += math.cos(angl)
+				
 			# end bond cycle
 			
+			# average angle
+			avg = math.atan2(sin, cos)
+			# cosine square
+			P2 = math.cos(avg) * math.cos(avg)
+			
+			# find lipid pho group position
 			pho = lipids.select_atoms("resnum {} and name PO4".format(res.resnum))
 			pho_x = int(math.floor((pho.positions[0][0] + box_x/2)/gridsize))
 			pho_y = int(math.floor((pho.positions[0][1] + box_y/2)/gridsize))
-			order_array[pho_x,pho_y] += P2 / number_bonds
+			# fill array
+			order_array[pho_x,pho_y] += P2
 			count_array[pho_x,pho_y] += 1
-			P2 = 0.0 
-			cos_theta = 0.0
-				
+		
 		# end residue cycle
 	
 	###########################################################################
